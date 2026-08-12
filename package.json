@@ -6,8 +6,11 @@
     "scripts": {
         "dev": "bun esbuild.config.mjs",
         "build": "tsc -noEmit -skipLibCheck && bun esbuild.config.mjs production",
+        "typecheck": "tsc --noEmit -skipLibCheck",
+        "lint": "eslint main.ts",
+        "lint:fix": "eslint main.ts --fix",
         "version": "bun version-bump.mjs && git add manifest.json versions.json",
-        "deploy": "bun run build && cp main.js styles.css manifest.json \"/Users/lhak/Library/Mobile Documents/iCloud~md~obsidian/Documents/lhakZettel/.obsidian/plugins/obsidian-dynamic-embed/\""
+        "deploy": "bun run build && bun run scripts/deploy.mjs"
     },
     "keywords": [],
     "author": "",
