@@ -19,4 +19,13 @@ export default defineConfig([
 			"@typescript-eslint/no-empty-function": "off",
 		},
 	},
+	{
+		// obsidian ships types only (no runtime), so `instanceof TFile` can't
+		// narrow a test fixture the way the rule expects — a shape cast is the
+		// only way to build one, per this repo's no-mocking test convention.
+		files: ["**/*.test.ts"],
+		rules: {
+			"obsidianmd/no-tfile-tfolder-cast": "off",
+		},
+	},
 ]);

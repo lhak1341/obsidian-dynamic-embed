@@ -15,7 +15,7 @@ export function resolveEmbedTarget(
         return { error: "Bad file link" };
     }
 
-    // #2 — strip alias (|) and subpath (#): both are valid Obsidian wikilink syntax
+    // Strip alias (|) and subpath (#): both are valid Obsidian wikilink syntax.
     const fileName = fileNameMatch[1].split("#")[0].split("|")[0].trim();
     const matchingFile = getFirstLinkpathDest(fileName, sourcePath);
 
@@ -24,7 +24,7 @@ export function resolveEmbedTarget(
     }
 
     if (matchingFile.extension !== "md") {
-        return { error: "Bad file extension found, expected markdown" };
+        return { error: "Bad file extension, expected markdown" };
     }
 
     return { file: matchingFile };

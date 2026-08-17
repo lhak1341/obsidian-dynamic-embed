@@ -38,6 +38,6 @@ describe("resolveEmbedTarget", () => {
         const target = fakeFile("Image.png", "png");
         const result = resolveEmbedTarget("[[Image]]", "Host.md", () => target);
 
-        expect(result).toEqual({ error: "Bad file extension found, expected markdown" });
+        expect(result).toEqual({ error: "Bad file extension, expected markdown" });
     });
 });
