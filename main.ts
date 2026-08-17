@@ -1,10 +1,11 @@
 import { MarkdownRenderChild, MarkdownRenderer, Plugin } from "obsidian";
+import { resolveEmbedTarget } from "./resolve-embed-target";
+import { createLatestWinsGate } from "./latest-wins-gate";
 
 export default class DynamicEmbed extends Plugin {
     static readonly codeBlockKeyword = "dynamic-embed";
     static readonly containerClass = "dynamic-embed";
     static readonly errorClass = "dynamic-embed-error";
-    static readonly pattern = /\[\[([^[\]]+?)\]\]/u;  // #5 — moved out of hot path
 
     // #7 — regular static method instead of class-field arrow
     static displayError(parent: HTMLElement, text: string): void {
@@ -13,26 +14,18 @@ export default class DynamicEmbed extends Plugin {
 
     async onload() {
         this.registerMarkdownCodeBlockProcessor(DynamicEmbed.codeBlockKeyword, async (source, el, ctx) => {
-            const fileNameMatch = DynamicEmbed.pattern.exec(source);
+            const target = resolveEmbedTarget(
+                source,
+                ctx.sourcePath,
+                (linkpath, sourcePath) => this.app.metadataCache.getFirstLinkpathDest(linkpath, sourcePath),
+            );
 
-            if (!fileNameMatch) {
-                DynamicEmbed.displayError(el, "Bad file link");
+            if ("error" in target) {
+                DynamicEmbed.displayError(el, target.error);
                 return;
             }
 
-            // #2 — strip alias (|) and subpath (#): both are valid Obsidian wikilink syntax
-            const fileName = fileNameMatch[1].split("#")[0].split("|")[0].trim();
-            const matchingFile = this.app.metadataCache.getFirstLinkpathDest(fileName, ctx.sourcePath);
-
-            if (!matchingFile) {
-                DynamicEmbed.displayError(el, "File link not found");
-                return;
-            }
-
-            if (matchingFile.extension !== "md") {
-                DynamicEmbed.displayError(el, "Bad file extension found, expected markdown");
-                return;
-            }
+            const matchingFile = target.file;
 
             // #6 — single-class cls doesn't need an array
             const container = el.createDiv({ cls: DynamicEmbed.containerClass });
@@ -40,12 +33,12 @@ export default class DynamicEmbed extends Plugin {
             ctx.addChild(component);
 
             // #4 — cancel token: superseded renders exit before writing to the DOM
-            let renderToken = 0;
+            const gate = createLatestWinsGate();
             const render = async () => {
-                const token = ++renderToken;
+                const token = gate.bump();
                 container.empty();
                 const fileContents = await this.app.vault.cachedRead(matchingFile);
-                if (token !== renderToken) return;
+                if (!gate.isCurrent(token)) return;
                 await MarkdownRenderer.render(this.app, fileContents, container, ctx.sourcePath, component);
             };
 
