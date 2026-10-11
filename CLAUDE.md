@@ -23,3 +23,7 @@ root next to the module it tests (e.g. `resolve-embed-target.test.ts` next to
 `resolve-embed-target.ts`). No Obsidian mocking — testable seams take narrow function
 dependencies instead of Obsidian objects, and `obsidian` types are imported with
 `import type` only.
+
+`embed-lifecycle.ts` takes vault, view and renderer ports; `main.ts` holds the only Obsidian
+adapters for them, and `embed-lifecycle.test.ts` holds the in-memory ones. Vitest runs in
+node, so DOM work belongs behind the view port. Domain terms are in `CONTEXT.md`.
